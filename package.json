@@ -1,0 +1,8 @@
+{
+  "name": "surang",
+  "private": true,
+  "scripts": {
+    "start": "node server/server.js",
+    "install": "cd server && npm install"
+  }
+}
