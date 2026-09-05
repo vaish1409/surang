@@ -14,13 +14,22 @@ export default function ArtistDashboard() {
   const [tab, setTab]         = useState("artworks");
   const [artworks, setArtworks] = useState([]);
   const [orders, setOrders]   = useState([]);
+  const [demand, setDemand]   = useState(null);   // platform-wide demand signals
+  const [myPerf, setMyPerf]   = useState(null);   // this artist's own performance
   const [loading, setLoading] = useState(true);
 
   useEffect(()=>{
     Promise.all([
       api.get("/artworks", { params: { artist: user._id, limit: 50 } }),
       api.get("/orders/artist"),
-    ]).then(([a,o])=>{ setArtworks(a.data.artworks||[]); setOrders(o.data||[]); })
+      api.get("/analytics/demand-signals").catch(()=>({ data:null })),
+      api.get("/analytics/my-performance").catch(()=>({ data:null })),
+    ]).then(([a,o,d,p])=>{
+      setArtworks(a.data.artworks||[]);
+      setOrders(o.data||[]);
+      setDemand(d.data);
+      setMyPerf(p.data);
+    })
     .catch(console.error).finally(()=>setLoading(false));
   },[user._id]);
 
@@ -82,7 +91,7 @@ export default function ArtistDashboard() {
 
         {/* Tabs */}
         <div className="flex gap-1 bg-surface rounded-xl p-1 w-fit mb-6">
-          {["artworks","orders"].map(t=>(
+          {["artworks","orders","insights"].map(t=>(
             <button key={t} onClick={()=>setTab(t)}
                     className={`px-5 py-2 rounded-lg text-sm font-medium capitalize transition-all ${tab===t?"bg-saffron text-deep":"text-cream-muted hover:text-cream"}`}>{t}</button>
           ))}
@@ -157,6 +166,113 @@ export default function ArtistDashboard() {
                   ))}
                 </div>
               )
+            )}
+
+            {/* Insights tab — market-linkage demand signals */}
+            {tab === "insights" && (
+              <div className="space-y-6">
+                {/* Your own performance */}
+                <div className="bg-surface-2 border border-surface-3 rounded-2xl p-6">
+                  <h3 className="text-cream font-semibold mb-4">Your Performance</h3>
+                  {myPerf ? (
+                    <>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <div>
+                          <div className="text-2xl font-bold text-cream">{myPerf.totalViews}</div>
+                          <div className="text-cream-muted text-xs">Total Views</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-cream">{myPerf.totalSold}</div>
+                          <div className="text-cream-muted text-xs">Units Sold</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-teal">{myPerf.conversionRate}%</div>
+                          <div className="text-cream-muted text-xs">Views → Sales</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-saffron">₹{(myPerf.totalEarnings||0).toLocaleString("en-IN")}</div>
+                          <div className="text-cream-muted text-xs">Total Earnings</div>
+                        </div>
+                      </div>
+                      {myPerf.myTopCategory && (
+                        <p className="text-cream-muted text-sm mb-3">
+                          Your best-selling category is <span className="text-cream font-medium">{myPerf.myTopCategory}</span>.
+                        </p>
+                      )}
+                      {myPerf.perArtwork?.length > 0 && (
+                        <div className="space-y-2">
+                          {myPerf.perArtwork.slice(0,5).map(a=>(
+                            <div key={a.id} className="flex items-center justify-between text-sm bg-surface rounded-lg px-3 py-2">
+                              <span className="text-cream truncate max-w-[50%]">{a.title}</span>
+                              <span className="text-cream-muted text-xs">{a.views} views · {a.soldCount} sold · {a.conversionRate}%</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-cream-muted text-sm">Loading your performance…</p>
+                  )}
+                </div>
+
+                {/* Platform-wide demand signals */}
+                <div className="bg-surface-2 border border-surface-3 rounded-2xl p-6">
+                  <h3 className="text-cream font-semibold mb-1">Market Demand Signals</h3>
+                  <p className="text-cream-muted text-xs mb-4">What's actually selling across SURANG right now — use this to decide what to make or list next.</p>
+
+                  {!demand || demand.topCategoriesOverall?.length === 0 ? (
+                    <p className="text-cream-muted text-sm">
+                      Not enough completed orders on the platform yet to show demand signals — this fills in automatically as sales come through.
+                    </p>
+                  ) : (
+                    <>
+                      <div className="mb-6">
+                        <p className="text-cream-muted text-xs mb-2 uppercase tracking-wide">Top categories, platform-wide</p>
+                        <div className="space-y-2">
+                          {demand.topCategoriesOverall.slice(0,6).map((c,i)=>{
+                            const max = demand.topCategoriesOverall[0].unitsSold || 1;
+                            return (
+                              <div key={c.category} className="flex items-center gap-3">
+                                <span className="text-cream text-sm w-28 truncate">{c.category}</span>
+                                <div className="flex-1 h-2.5 bg-surface rounded-full overflow-hidden">
+                                  <div className="h-full bg-saffron rounded-full" style={{ width: `${(c.unitsSold/max)*100}%` }}/>
+                                </div>
+                                <span className="text-cream-muted text-xs w-16 text-right">{c.unitsSold} sold</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {demand.demandByState?.length > 0 && (
+                        <div>
+                          <p className="text-cream-muted text-xs mb-2 uppercase tracking-wide">Top category by state</p>
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="text-cream-muted text-xs text-left">
+                                  <th className="pb-2 font-normal">State</th>
+                                  <th className="pb-2 font-normal">Top Category</th>
+                                  <th className="pb-2 font-normal text-right">Units Sold</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {demand.demandByState.slice(0,10).map(row=>(
+                                  <tr key={row.state} className="border-t border-surface-3/50">
+                                    <td className="py-2 text-cream">{row.state}</td>
+                                    <td className="py-2 text-cream-muted">{row.topCategory}</td>
+                                    <td className="py-2 text-cream-muted text-right">{row.unitsSold}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
             )}
           </>
         )}
