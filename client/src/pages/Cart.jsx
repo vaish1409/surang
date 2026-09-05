@@ -8,6 +8,23 @@ import toast from "react-hot-toast";
 
 const STATES = ["Andhra Pradesh","Bihar","Delhi","Gujarat","Karnataka","Kerala","Madhya Pradesh","Maharashtra","Punjab","Rajasthan","Tamil Nadu","Telangana","Uttar Pradesh","West Bengal","Other"];
 
+function loadRazorpay() {
+  if (window.Razorpay) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+    if (existing) {
+      existing.addEventListener("load", resolve, { once: true });
+      existing.addEventListener("error", () => reject(new Error("Razorpay checkout could not load")), { once: true });
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = resolve;
+    script.onerror = () => reject(new Error("Razorpay checkout could not load"));
+    document.body.appendChild(script);
+  });
+}
+
 export default function Cart() {
   const { cartItems, removeFromCart, clearCart, cartTotal } = useCart();
   const { user } = useAuth();
@@ -28,8 +45,12 @@ export default function Cart() {
     setPaying(true);
     try {
       const { data: rzpOrder } = await api.post("/orders/razorpay", { amount: cartTotal });
+      await loadRazorpay();
+      if (!rzpOrder.key || !rzpOrder.orderId || !window.Razorpay) {
+        throw new Error("Razorpay configuration is incomplete");
+      }
       const options = {
-        key:      rzpOrder.key || import.meta.env.VITE_RAZORPAY_KEY_ID,
+        key:      rzpOrder.key,
         amount:   rzpOrder.amount,
         currency: "INR",
         name:     "SURANG",
@@ -54,7 +75,10 @@ export default function Cart() {
       };
       const rzp = new window.Razorpay(options);
       rzp.open();
-    } catch(e) { toast.error("Payment setup failed. Try again."); }
+    } catch(e) {
+      console.error("Razorpay checkout failed", e);
+      toast.error(e.response?.data?.message || e.message || "Payment setup failed. Try again.");
+    }
     finally { setPaying(false); }
   };
 
@@ -73,8 +97,6 @@ export default function Cart() {
   return (
     <div className="min-h-screen bg-deep">
       <Navbar/>
-      {/* Load Razorpay script */}
-      <script src="https://checkout.razorpay.com/v1/checkout.js"/>
       <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-24 pb-20">
         <h1 className="font-display text-3xl text-cream font-bold mb-2">Your Cart</h1>
         <p className="text-cream-muted text-sm mb-8">{cartItems.length} artwork{cartItems.length > 1 ? "s" : ""}</p>
