@@ -19,13 +19,48 @@ export default function UploadArt() {
     tags:"", state:"", city:"",
   });
 
+  // --- AI auto-catalog state ---
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiMeta, setAiMeta] = useState(null); // { confidence, artisanPrompt }
+
   const handleFiles = (e) => {
     const selected = Array.from(e.target.files).slice(0,5);
     setFiles(selected);
     setPreviews(selected.map(f=>URL.createObjectURL(f)));
+    setAiMeta(null); // new photos invalidate any previous AI suggestion
   };
 
   const f = (k) => (e) => setForm(p=>({...p,[k]:e.target.value}));
+
+  const handleAutoCatalog = async () => {
+    if (files.length === 0) {
+      toast.error("Add a photo first, then let AI suggest the details");
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append("image", files[0]);
+      const { data } = await api.post("/ai/auto-catalog", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setForm((p) => ({
+        ...p,
+        category: data.category || p.category,
+        title: data.title || p.title,
+        description: data.description || p.description,
+        artStyle: data.artStyle || p.artStyle,
+        medium: data.medium || p.medium,
+        tags: [p.tags, ...(data.suggestedTags || [])].filter(Boolean).join(", "),
+      }));
+      setAiMeta({ confidence: data.confidence, artisanPrompt: data.artisanPrompt });
+      toast.success("AI drafted your listing — please review before publishing ✨");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "AI suggestion failed. You can fill this in manually.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -75,6 +110,30 @@ export default function UploadArt() {
             </div>
             <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFiles}/>
           </div>
+
+          {/* AI auto-catalog trigger — only shows once a photo is selected */}
+          {files.length > 0 && (
+            <button
+              type="button"
+              onClick={handleAutoCatalog}
+              disabled={aiLoading}
+              className={`btn-outline w-full py-3 rounded-xl font-medium ${aiLoading ? "opacity-60 cursor-wait" : ""}`}
+            >
+              {aiLoading ? "✨ AI is looking at your photo…" : "✨ Auto-fill details with AI"}
+            </button>
+          )}
+
+          {aiMeta && (
+            <div className="bg-surface-2 border border-saffron/30 rounded-2xl p-4 text-sm">
+              <p className="text-cream">
+                ✨ AI drafted the fields below (confidence: <span className="font-semibold">{aiMeta.confidence}</span>).
+                Please read them over — this is a starting point, not the final word on your own work.
+              </p>
+              {aiMeta.artisanPrompt && (
+                <p className="text-cream-muted mt-2">💬 {aiMeta.artisanPrompt}</p>
+              )}
+            </div>
+          )}
 
           <div className="bg-surface-2 border border-surface-3 rounded-2xl p-6 space-y-5">
             <h3 className="text-cream font-semibold">Artwork Details</h3>
