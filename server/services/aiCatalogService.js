@@ -92,4 +92,49 @@ async function autoCatalogFromImage({ base64, mimeType }) {
   return parsed;
 }
 
-module.exports = { autoCatalogFromImage, CATEGORIES };
+/**
+ * Turns a raw speech-to-text transcript (often Hindi/regional language, or a
+ * mix, and unstructured because it came from speech) into a clean,
+ * buyer-facing description — without inventing anything the artisan didn't
+ * actually say. Optionally blends in facts already detected from the
+ * artisan's photo (category/style/medium) if they don't conflict.
+ */
+async function polishDescriptionFromSpeech({ transcript, detectedContext }) {
+  if (!transcript || !transcript.trim()) {
+    throw new Error('Empty transcript');
+  }
+
+  const contextLine = detectedContext
+    ? `\n\nFor context, an earlier photo analysis suggested: category "${detectedContext.category || ''}", style "${detectedContext.artStyle || ''}", medium "${detectedContext.medium || ''}". Only use these if they don't contradict what the artisan actually said.`
+    : '';
+
+  const prompt = `An artisan on SURANG (an Indian handmade-craft marketplace) spoke this description of their own artwork out loud. It was transcribed by speech-to-text, so it may be in Hindi, English, a regional language, or a mix, and may read a little unstructured.
+
+Artisan's spoken transcript:
+"""
+${transcript.trim()}
+"""${contextLine}
+
+Write a buyer-facing product description in English, 2 to 4 sentences, that keeps every real detail the artisan mentioned (materials, technique, region, time taken, meaning, story — whatever is actually there) but reads clearly and naturally. Do not invent any fact, certification, award, or backstory the artisan did not say. If the transcript is too short or unclear to build a real description, say so honestly in one short sentence instead of guessing.
+
+Respond with ONLY the description text — no quotation marks, no labels, no preamble.`;
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.6-flash',
+        contents: prompt,
+        config: { maxOutputTokens: 400 },
+      });
+      const text = response.text;
+      if (!text) throw new Error('AI did not return a text response');
+      return text.trim();
+    } catch (error) {
+      const transient = /429|503|UNAVAILABLE|high demand/i.test(error.message || '');
+      if (!transient || attempt === 3) throw error;
+      await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+    }
+  }
+}
+
+module.exports = { autoCatalogFromImage, polishDescriptionFromSpeech, CATEGORIES };

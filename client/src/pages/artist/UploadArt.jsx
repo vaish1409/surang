@@ -6,6 +6,19 @@ import toast from "react-hot-toast";
 
 const CATEGORIES = ["Madhubani","Warli","Kalamkari","Pottery","Pattachitra","Weaving","Sculpture","Folk Art","Photography","Other"];
 const STATES = ["Andhra Pradesh","Bihar","Delhi","Gujarat","Karnataka","Kerala","Madhya Pradesh","Maharashtra","Odisha","Punjab","Rajasthan","Tamil Nadu","Telangana","Uttar Pradesh","West Bengal","Other"];
+const VOICE_LANGUAGES = [
+  { code: "hi-IN", label: "Hindi" },
+  { code: "en-IN", label: "English (India)" },
+  { code: "bn-IN", label: "Bengali" },
+  { code: "ta-IN", label: "Tamil" },
+  { code: "te-IN", label: "Telugu" },
+  { code: "mr-IN", label: "Marathi" },
+  { code: "gu-IN", label: "Gujarati" },
+  { code: "kn-IN", label: "Kannada" },
+  { code: "ml-IN", label: "Malayalam" },
+  { code: "pa-IN", label: "Punjabi" },
+  { code: "or-IN", label: "Odia" },
+];
 
 export default function UploadArt() {
   const navigate  = useNavigate();
@@ -19,15 +32,24 @@ export default function UploadArt() {
     tags:"", state:"", city:"",
   });
 
-  // --- AI auto-catalog state ---
+  // --- AI auto-catalog state (photo -> listing) ---
   const [aiLoading, setAiLoading] = useState(false);
   const [aiMeta, setAiMeta] = useState(null); // { confidence, artisanPrompt }
+  const [detectedContext, setDetectedContext] = useState(null); // category/style/medium from photo, reused by voice polish
+
+  // --- Voice-based description state (speech -> listing) ---
+  const [voiceLang, setVoiceLang] = useState("hi-IN");
+  const [isRecording, setIsRecording] = useState(false);
+  const [voiceLoading, setVoiceLoading] = useState(false);
+  const [liveTranscript, setLiveTranscript] = useState("");
+  const recognitionRef = useRef(null);
 
   const handleFiles = (e) => {
     const selected = Array.from(e.target.files).slice(0,5);
     setFiles(selected);
     setPreviews(selected.map(f=>URL.createObjectURL(f)));
     setAiMeta(null); // new photos invalidate any previous AI suggestion
+    setDetectedContext(null);
   };
 
   const f = (k) => (e) => setForm(p=>({...p,[k]:e.target.value}));
@@ -54,11 +76,74 @@ export default function UploadArt() {
         tags: [p.tags, ...(data.suggestedTags || [])].filter(Boolean).join(", "),
       }));
       setAiMeta({ confidence: data.confidence, artisanPrompt: data.artisanPrompt });
+      setDetectedContext({ category: data.category, artStyle: data.artStyle, medium: data.medium });
       toast.success("AI drafted your listing — please review before publishing ✨");
     } catch (err) {
       toast.error(err.response?.data?.message || "AI suggestion failed. You can fill this in manually.");
     } finally {
       setAiLoading(false);
+    }
+  };
+
+  // --- Voice-based description handlers ---
+  const startRecording = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error("Voice input isn't supported in this browser yet. Try Chrome or Edge.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = voiceLang;
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    let finalText = "";
+
+    recognition.onresult = (event) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const chunk = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += chunk + " ";
+        else interim += chunk;
+      }
+      setLiveTranscript(finalText + interim);
+    };
+
+    recognition.onerror = () => {
+      toast.error("Voice recognition hit an error — please try again.");
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => setIsRecording(false);
+
+    recognitionRef.current = recognition;
+    setLiveTranscript("");
+    recognition.start();
+    setIsRecording(true);
+  };
+
+  const stopRecording = async () => {
+    if (recognitionRef.current) recognitionRef.current.stop();
+    setIsRecording(false);
+
+    const transcript = liveTranscript.trim();
+    if (!transcript) {
+      toast.error("Didn't catch anything — try again, a little closer to the mic.");
+      return;
+    }
+
+    setVoiceLoading(true);
+    try {
+      const { data } = await api.post("/ai/polish-description", { transcript, detectedContext });
+      setForm((p) => ({ ...p, description: data.description || transcript }));
+      toast.success("Your spoken description is drafted below — please review it ✨");
+    } catch (err) {
+      // Never block the artisan — fall back to their raw words if polishing fails
+      setForm((p) => ({ ...p, description: transcript }));
+      toast.error(err.response?.data?.message || "Couldn't polish the wording, so your own words are filled in as-is.");
+    } finally {
+      setVoiceLoading(false);
     }
   };
 
@@ -134,6 +219,40 @@ export default function UploadArt() {
               )}
             </div>
           )}
+
+          {/* Voice-based description — speak in your own language instead of typing */}
+          <div className="bg-surface-2 border border-surface-3 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <p className="text-cream text-sm font-medium">🎙️ Prefer to speak your description?</p>
+              <select
+                value={voiceLang}
+                onChange={(e) => setVoiceLang(e.target.value)}
+                disabled={isRecording || voiceLoading}
+                className="input-dark w-auto text-xs py-1.5"
+              >
+                {VOICE_LANGUAGES.map((l) => (
+                  <option key={l.code} value={l.code}>{l.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              type="button"
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={voiceLoading}
+              className={`btn-outline w-full py-3 rounded-xl font-medium
+                ${isRecording ? "border-red-400 text-red-300" : ""}
+                ${voiceLoading ? "opacity-60 cursor-wait" : ""}`}
+            >
+              {voiceLoading ? "✨ Polishing your words…" : isRecording ? "⏹ Stop and use this" : "🎙️ Start speaking"}
+            </button>
+
+            {isRecording && (
+              <p className="text-cream-muted text-xs italic min-h-[1.25rem]">
+                {liveTranscript || "Listening… speak naturally about your craft."}
+              </p>
+            )}
+          </div>
 
           <div className="bg-surface-2 border border-surface-3 rounded-2xl p-6 space-y-5">
             <h3 className="text-cream font-semibold">Artwork Details</h3>
