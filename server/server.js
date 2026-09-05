@@ -16,6 +16,7 @@ app.use('/api/artworks', require('./routes/artworks'));
 app.use('/api/orders',   require('./routes/orders'));
 app.use('/api/admin',    require('./routes/admin'));
 app.use('/api/ai',       require('./routes/ai'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 app.get('/', (_req, res) => res.json({ message: 'SURANG API running 🎨' }));
 
