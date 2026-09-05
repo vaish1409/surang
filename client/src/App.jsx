@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import CulturalMap from "./pages/CulturalMap";
 
 import Landing        from "./pages/Landing";
 import Explore        from "./pages/Explore";
@@ -33,6 +34,7 @@ export default function App() {
           <Routes>
             <Route path="/"         element={<Landing />} />
             <Route path="/explore"  element={<Explore />} />
+            <Route path="/cultural-map" element={<CulturalMap />} />
             <Route path="/art/:id"  element={<ArtDetail />} />
             <Route path="/login"    element={<Login />} />
             <Route path="/register" element={<Register />} />

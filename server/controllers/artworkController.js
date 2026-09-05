@@ -90,3 +90,20 @@ exports.getMyArtworks = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+exports.getStateStats = async (req, res) => {
+  try {
+    const rows = await Artwork.aggregate([
+      { $match: { isAvailable: true } },
+      { $group: { _id: '$location.state', artworkCount: { $sum: 1 }, categories: { $push: '$category' } } },
+    ]);
+    const stateStats = rows.filter(r => r._id).map(r => {
+      const counts = {};
+      r.categories.forEach(c => { counts[c] = (counts[c] || 0) + 1; });
+      const topCategory = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+      return { state: r._id, artworkCount: r.artworkCount, topCategory };
+    });
+    res.json({ stateStats });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

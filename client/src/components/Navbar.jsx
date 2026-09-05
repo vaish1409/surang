@@ -35,6 +35,7 @@ export default function Navbar() {
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-6">
             <Link to="/explore" className="text-cream-muted hover:text-cream text-sm font-medium transition-colors">Explore Art</Link>
+            <Link to="/cultural-map" className="text-cream-muted hover:text-cream text-sm font-medium transition-colors">Cultural Map</Link>
             {user?.role === "artist" && (
               <Link to="/artist/dashboard" className="text-cream-muted hover:text-cream text-sm font-medium transition-colors">My Dashboard</Link>
             )}

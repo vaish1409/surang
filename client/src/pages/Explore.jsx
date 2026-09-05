@@ -18,6 +18,7 @@ export default function Explore() {
   const [search, setSearch]     = useState("");
   const [sort, setSort]         = useState("-createdAt");
   const [price, setPrice]       = useState([0, 100000]);
+  const [state, setState] = useState(params.get("state") || "");
 
   const fetchArtworks = useCallback(async () => {
     setLoading(true);
@@ -31,6 +32,7 @@ export default function Explore() {
           maxPrice: price[1] < 100000 ? price[1] : undefined,
           page,
           limit: 12,
+          state: state || undefined,
         }
       });
       setArtworks(data.artworks);
@@ -38,7 +40,7 @@ export default function Explore() {
       setPages(data.pages);
     } catch(e) { console.error(e); }
     finally { setLoading(false); }
-  }, [category, search, sort, price, page]);
+  }, [category, search, sort, price, page,state]);
 
   useEffect(() => { fetchArtworks(); }, [fetchArtworks]);
 
@@ -74,6 +76,11 @@ export default function Explore() {
                     }`}>{c}</button>
           ))}
         </div>
+        {state && (
+          <button onClick={() => setState("")} className="text-xs px-3 py-1 rounded-full bg-saffron/20 text-saffron">
+            {state} x
+          </button>
+        )}
 
         {/* Grid */}
         {loading ? (
