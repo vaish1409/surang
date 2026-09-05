@@ -4,10 +4,10 @@ import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import CulturalMap from "./pages/CulturalMap";
 
 import Landing        from "./pages/Landing";
 import Explore        from "./pages/Explore";
+import CulturalMap    from "./pages/CulturalMap";
 import ArtDetail      from "./pages/ArtDetail";
 import Login          from "./pages/Login";
 import Register       from "./pages/Register";

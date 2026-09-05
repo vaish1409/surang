@@ -1,105 +1,145 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import api from "../services/api";
+import { MAP_VIEWBOX, STATE_PATHS } from "../data/indiaStatePaths";
 
-const STATES = [
-  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa",
-  "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala",
-  "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland",
-  "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura",
-  "Uttar Pradesh", "Uttarakhand", "West Bengal",
-];
+// Short, factual craft notes for states with a widely-known signature craft.
+// States not listed here still work — the panel just shows a generic line.
+const CRAFT_HERITAGE = {
+  "Bihar": "Home of Madhubani painting — intricate line work and natural dyes, traditionally practiced by women and passed down through generations.",
+  "Maharashtra": "Birthplace of Warli art — tribal wall paintings that use simple geometric shapes to tell stories of daily and communal life.",
+  "Andhra Pradesh": "Known for Kalamkari — hand-painted or block-printed textile art made using natural dyes.",
+  "Odisha": "Famous for Pattachitra — intricate cloth-based scroll paintings depicting mythology and folklore.",
+  "Rajasthan": "Renowned for Blue Pottery and vibrant Bandhani tie-dye textiles.",
+  "Gujarat": "Known for Bandhani tie-dye and the rare, geometric Rogan art of Kutch.",
+  "West Bengal": "Home to Kantha embroidery and centuries-old terracotta temple art.",
+  "Tamil Nadu": "Known for Tanjore paintings with gold-foil work, and bronze Chola-style sculpture.",
+  "Jammu and Kashmir": "Famous for Pashmina weaving and intricate papier-mâché craftsmanship.",
+  "Karnataka": "Home to Mysore paintings and traditional sandalwood carving.",
+  "Kerala": "Known for temple mural painting and coir-based craft.",
+  "Uttar Pradesh": "Famous for Chikankari embroidery and traditional brassware.",
+  "Punjab": "Known for Phulkari — vibrant floral embroidery on hand-spun cloth.",
+  "Madhya Pradesh": "Home to Gond art — intricate dot-and-line tribal paintings.",
+  "Assam": "Famous for Muga silk weaving, a golden silk unique to this region.",
+  "Manipur": "Known for hand-woven Moirang Phee textiles and bamboo craft.",
+};
 
 export default function CulturalMap() {
-  const [stats, setStats]     = useState({});
-  const [selected, setSelected] = useState(null);
+  const navigate = useNavigate();
+  const [counts, setCounts]   = useState({});
   const [loading, setLoading] = useState(true);
+  const [hovered, setHovered]   = useState(null);
+  const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    api.get("/artworks/stats/by-state")
-      .then(({ data }) => {
+    (async () => {
+      try {
+        const { data } = await api.get("/artworks/meta/state-counts");
         const map = {};
-        (data.stateStats || []).forEach(row => { map[row.state] = row; });
-        setStats(map);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+        data.forEach(({ state, count }) => { map[state] = count; });
+        setCounts(map);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  const lookup = (name) => {
-    const base = stats[name];
-    if (name === "Andhra Pradesh" && stats["Telangana"]) {
-      return {
-        name,
-        artworkCount: (base?.artworkCount || 0) + stats["Telangana"].artworkCount,
-        topCategory: base?.topCategory || stats["Telangana"].topCategory,
-        includesTelangana: true,
-      };
-    }
-    return base ? { name, ...base } : { name, artworkCount: 0, topCategory: null };
+  const maxCount = useMemo(
+    () => Math.max(1, ...Object.values(counts)),
+    [counts]
+  );
+
+  const fillFor = (name) => {
+    const c = counts[name] || 0;
+    if (c === 0) return "rgba(255,248,240,0.06)";
+    const intensity = 0.35 + (c / maxCount) * 0.65;
+    return `rgba(230,126,34,${intensity})`;
   };
-  const active = selected;
+
+  const activeState    = hovered || selected;
+  const activeCount    = activeState ? counts[activeState] || 0 : null;
+  const activeHeritage = activeState ? CRAFT_HERITAGE[activeState] : null;
 
   return (
     <div className="min-h-screen bg-deep">
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-24 pb-20">
-        <h1 className="font-display text-3xl text-cream font-bold mb-2">Cultural Map of India</h1>
-        <p className="text-cream-muted text-sm mb-8">
-          Every lit-up state has real artisans selling on SURANG right now. Click a state to explore its craft.
-        </p>
+        <div className="mb-8 text-center">
+          <h1 className="font-display text-4xl text-cream font-bold">Cultural Map of India</h1>
+          <p className="text-cream-muted text-sm mt-2 max-w-xl mx-auto">
+            Every state carries its own craft tradition. Tap a state to see its heritage
+            and the artisans selling directly from there today.
+          </p>
+        </div>
 
-        {loading ? (
-          <div className="text-center py-20 text-cream-muted">Loading map…</div>
-        ) : (
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 bg-surface-2 border border-surface-3 rounded-2xl p-5">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                {STATES.map((name) => {
-                  const info = lookup(name);
-                  return (
-                    <button key={name} onClick={() => setSelected(info)}
-                            className={`text-left px-3 py-3 rounded-lg border transition-colors ${
-                              info.artworkCount > 0
-                                ? "border-saffron/60 bg-saffron/10 text-cream hover:bg-saffron/20"
-                                : "border-surface-3 text-cream-muted hover:border-saffron/40 hover:text-cream"
-                            }`}>
-                      <span className="block text-sm font-medium">{name}</span>
-                      <span className="block text-xs mt-1 opacity-70">
-                        {info.artworkCount ? `${info.artworkCount} artwork${info.artworkCount !== 1 ? "s" : ""}` : "No artworks yet"}
-                      </span>
-                    </button>
-                  );
-                })}
+        <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-8 items-start">
+          {/* Map */}
+          <div className="bg-surface-2 border border-surface-3 rounded-2xl p-4 sm:p-6">
+            <svg viewBox={MAP_VIEWBOX} className="w-full h-auto select-none">
+              {STATE_PATHS.map((s) => (
+                <path
+                  key={s.name}
+                  d={s.d}
+                  fill={fillFor(s.name)}
+                  stroke={hovered === s.name || selected === s.name ? "#FFA630" : "#443a6b"}
+                  strokeWidth={hovered === s.name || selected === s.name ? 2 : 1}
+                  fillRule="evenodd"
+                  className="cursor-pointer transition-colors duration-150"
+                  onMouseEnter={() => setHovered(s.name)}
+                  onMouseLeave={() => setHovered(null)}
+                  onClick={() => setSelected(s.name)}
+                >
+                  <title>{s.name}</title>
+                </path>
+              ))}
+            </svg>
+            <div className="flex items-center gap-4 mt-4 text-xs text-cream-muted">
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-sm inline-block" style={{ background: "rgba(255,248,240,0.06)" }} />
+                No listings yet
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-sm inline-block" style={{ background: "rgba(230,126,34,0.75)" }} />
+                Active artisans
               </div>
             </div>
-
-            <div className="bg-surface-2 border border-surface-3 rounded-2xl p-6">
-              {active ? (
-                <>
-                  <h3 className="text-cream font-semibold text-lg">{active.name}{active.includesTelangana && " & Telangana"}</h3>
-                  {active.artworkCount > 0 ? (
-                    <>
-                      <p className="text-cream-muted text-sm mt-2">{active.artworkCount} artwork{active.artworkCount !== 1 && "s"} listed</p>
-                      {active.topCategory && (
-                        <p className="text-cream-muted text-sm mt-1">Best known here: <span className="text-saffron font-medium">{active.topCategory}</span></p>
-                      )}
-                      <Link to={`/explore?state=${encodeURIComponent(active.name)}`}
-                            className="btn-saffron inline-block mt-4 px-5 py-2 text-sm">
-                        Browse artworks from here →
-                      </Link>
-                    </>
-                  ) : (
-                    <p className="text-cream-muted text-sm mt-2">No artisans listed from here yet.</p>
-                  )}
-                </>
-              ) : (
-                <p className="text-cream-muted text-sm">Hover or click a state to see its craft.</p>
-              )}
-            </div>
           </div>
+
+          {/* Detail panel */}
+          <div className="bg-surface-2 border border-surface-3 rounded-2xl p-6 min-h-[280px] flex flex-col">
+            {!activeState ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-center text-cream-muted">
+                <div className="text-4xl mb-3">🗺️</div>
+                <p className="text-sm">Hover or tap a state to see its craft heritage and live listings.</p>
+              </div>
+            ) : (
+              <>
+                <h3 className="font-display text-2xl text-cream font-bold">{activeState}</h3>
+                <p className="text-saffron text-sm font-medium mt-1">
+                  {activeCount > 0
+                    ? `${activeCount} artwork${activeCount === 1 ? "" : "s"} listed`
+                    : "No listings yet — be the first"}
+                </p>
+                <p className="text-cream-muted text-sm mt-4 leading-relaxed flex-1">
+                  {activeHeritage || "This region has its own craft traditions — explore what local artisans are creating."}
+                </p>
+                <button
+                  onClick={() => navigate(`/explore?state=${encodeURIComponent(activeState)}`)}
+                  className="btn-saffron mt-4 py-2.5 rounded-xl font-medium"
+                >
+                  Browse artworks from here →
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {loading && (
+          <p className="text-center text-cream-muted text-sm mt-6">Loading live listings…</p>
         )}
       </div>
       <Footer />

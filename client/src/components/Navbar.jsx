@@ -96,6 +96,7 @@ export default function Navbar() {
           <div className="md:hidden bg-surface-2/95 backdrop-blur-md border-t border-surface-3 pb-4">
             <div className="flex flex-col gap-1 pt-2 px-2">
               <Link to="/explore" onClick={() => setMenu(false)} className="px-3 py-2.5 rounded-lg text-cream-muted hover:text-cream hover:bg-surface-3 text-sm transition-colors">Explore Art</Link>
+              <Link to="/cultural-map" onClick={() => setMenu(false)} className="px-3 py-2.5 rounded-lg text-cream-muted hover:text-cream hover:bg-surface-3 text-sm transition-colors">Cultural Map</Link>
               {user?.role === "artist" && <Link to="/artist/dashboard" onClick={() => setMenu(false)} className="px-3 py-2.5 rounded-lg text-cream-muted hover:text-cream hover:bg-surface-3 text-sm transition-colors">My Dashboard</Link>}
               {user?.role === "artist" && <Link to="/artist/upload" onClick={() => setMenu(false)} className="px-3 py-2.5 rounded-lg text-cream-muted hover:text-cream hover:bg-surface-3 text-sm transition-colors">Upload Art</Link>}
               {user ? (

@@ -18,7 +18,14 @@ export default function Explore() {
   const [search, setSearch]     = useState("");
   const [sort, setSort]         = useState("-createdAt");
   const [price, setPrice]       = useState([0, 100000]);
-  const [state, setState] = useState(params.get("state") || "");
+  const [state, setState]       = useState(params.get("state") || "");
+
+  // Picks up state changes when arriving fresh from the Cultural Map
+  // (or a shared/bookmarked link, or the browser back/forward buttons).
+  useEffect(() => {
+    setState(params.get("state") || "");
+    setPage(1);
+  }, [params]);
 
   const fetchArtworks = useCallback(async () => {
     setLoading(true);
@@ -30,9 +37,9 @@ export default function Explore() {
           sort,
           minPrice: price[0] || undefined,
           maxPrice: price[1] < 100000 ? price[1] : undefined,
+          state: state || undefined,
           page,
           limit: 12,
-          state: state || undefined,
         }
       });
       setArtworks(data.artworks);
@@ -40,7 +47,7 @@ export default function Explore() {
       setPages(data.pages);
     } catch(e) { console.error(e); }
     finally { setLoading(false); }
-  }, [category, search, sort, price, page,state]);
+  }, [category, search, sort, price, page, state]);
 
   useEffect(() => { fetchArtworks(); }, [fetchArtworks]);
 
@@ -53,6 +60,20 @@ export default function Explore() {
           <h1 className="font-display text-4xl text-cream font-bold">Explore Indian Art</h1>
           <p className="text-cream-muted text-sm mt-1">{total} authentic artworks from verified artists across India</p>
         </div>
+
+        {/* Active state filter, from the Cultural Map */}
+        {state && (
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-cream-muted text-xs">Filtering by:</span>
+            <button
+              onClick={() => setState("")}
+              className="inline-flex items-center gap-1.5 bg-saffron/15 border border-saffron/40 text-saffron text-xs font-medium px-3 py-1.5 rounded-full hover:bg-saffron/25 transition-colors"
+            >
+              {state}
+              <span className="text-sm leading-none">✕</span>
+            </button>
+          </div>
+        )}
 
         {/* Search + Sort bar */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -76,11 +97,6 @@ export default function Explore() {
                     }`}>{c}</button>
           ))}
         </div>
-        {state && (
-          <button onClick={() => setState("")} className="text-xs px-3 py-1 rounded-full bg-saffron/20 text-saffron">
-            {state} x
-          </button>
-        )}
 
         {/* Grid */}
         {loading ? (
