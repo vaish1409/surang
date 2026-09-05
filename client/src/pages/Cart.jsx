@@ -29,18 +29,20 @@ export default function Cart() {
     try {
       const { data: rzpOrder } = await api.post("/orders/razorpay", { amount: cartTotal });
       const options = {
-        key:      import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_placeholder",
+        key:      rzpOrder.key || import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount:   rzpOrder.amount,
         currency: "INR",
         name:     "SURANG",
         description: "Indian Art Purchase",
-        order_id: rzpOrder.id,
+        order_id: rzpOrder.orderId,
         handler: async (response) => {
           const items = cartItems.map(i=>({ artwork: i._id, artist: i.artist?._id||i.artist, title:i.title, price:i.price, quantity:i.quantity, image:i.images?.[0]||"" }));
           const { data: order } = await api.post("/orders", {
             items, shippingAddress: addr,
             paymentId: response.razorpay_payment_id,
             orderId:   response.razorpay_order_id,
+            razorpayOrderId: response.razorpay_order_id,
+            razorpaySignature: response.razorpay_signature,
             totalAmount: cartTotal,
           });
           clearCart();
