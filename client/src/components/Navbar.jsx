@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { cartCount }    = useCart();
   const navigate         = useNavigate();
   const { pathname }     = useLocation();
+  const { t }            = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [menu, setMenu]         = useState(false);
 
@@ -34,18 +37,19 @@ export default function Navbar() {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-6">
-            <Link to="/explore" className="text-cream-muted hover:text-cream text-sm font-medium transition-colors">Explore Art</Link>
-            <Link to="/cultural-map" className="text-cream-muted hover:text-cream text-sm font-medium transition-colors">Cultural Map</Link>
+            <Link to="/explore" className="text-cream-muted hover:text-cream text-sm font-medium transition-colors">{t("nav.explore")}</Link>
+            <Link to="/cultural-map" className="text-cream-muted hover:text-cream text-sm font-medium transition-colors">{t("nav.culturalMap")}</Link>
             {user?.role === "artist" && (
-              <Link to="/artist/dashboard" className="text-cream-muted hover:text-cream text-sm font-medium transition-colors">My Dashboard</Link>
+              <Link to="/artist/dashboard" className="text-cream-muted hover:text-cream text-sm font-medium transition-colors">{t("nav.myDashboard")}</Link>
             )}
           </div>
 
           {/* Right Side */}
           <div className="hidden md:flex items-center gap-3">
+            <LanguageSwitcher />
             {!user && (
               <Link to="/register?role=artist" className="text-saffron text-sm font-medium hover:text-saffron-light transition-colors">
-                Sell Art
+                {t("nav.sellArt")}
               </Link>
             )}
             {user ? (
@@ -67,17 +71,17 @@ export default function Navbar() {
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                   </button>
                   <div className="absolute right-0 mt-2 w-44 bg-surface-2 border border-surface-3 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                    {user.role === "buyer" && <Link to="/cart" className="block px-4 py-2.5 text-sm text-cream-muted hover:text-cream hover:bg-surface-3 rounded-t-xl transition-colors">My Orders</Link>}
-                    {user.role === "artist" && <Link to="/artist/dashboard" className="block px-4 py-2.5 text-sm text-cream-muted hover:text-cream hover:bg-surface-3 rounded-t-xl transition-colors">Dashboard</Link>}
-                    {user.role === "artist" && <Link to="/artist/upload" className="block px-4 py-2.5 text-sm text-cream-muted hover:text-cream hover:bg-surface-3 transition-colors">Upload Art</Link>}
-                    <button onClick={handleLogout} className="w-full text-left px-4 py-2.5 text-sm text-crimson hover:bg-surface-3 rounded-b-xl transition-colors">Sign Out</button>
+                    {user.role === "buyer" && <Link to="/cart" className="block px-4 py-2.5 text-sm text-cream-muted hover:text-cream hover:bg-surface-3 rounded-t-xl transition-colors">{t("nav.myOrders")}</Link>}
+                    {user.role === "artist" && <Link to="/artist/dashboard" className="block px-4 py-2.5 text-sm text-cream-muted hover:text-cream hover:bg-surface-3 rounded-t-xl transition-colors">{t("nav.dashboard")}</Link>}
+                    {user.role === "artist" && <Link to="/artist/upload" className="block px-4 py-2.5 text-sm text-cream-muted hover:text-cream hover:bg-surface-3 transition-colors">{t("nav.uploadArt")}</Link>}
+                    <button onClick={handleLogout} className="w-full text-left px-4 py-2.5 text-sm text-crimson hover:bg-surface-3 rounded-b-xl transition-colors">{t("nav.signOut")}</button>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Link to="/login"    className="btn-outline text-sm py-2 px-4">Sign In</Link>
-                <Link to="/register" className="btn-saffron text-sm py-2 px-4">Join Free</Link>
+                <Link to="/login"    className="btn-outline text-sm py-2 px-4">{t("nav.signIn")}</Link>
+                <Link to="/register" className="btn-saffron text-sm py-2 px-4">{t("nav.joinFree")}</Link>
               </div>
             )}
           </div>
@@ -95,16 +99,19 @@ export default function Navbar() {
         {menu && (
           <div className="md:hidden bg-surface-2/95 backdrop-blur-md border-t border-surface-3 pb-4">
             <div className="flex flex-col gap-1 pt-2 px-2">
-              <Link to="/explore" onClick={() => setMenu(false)} className="px-3 py-2.5 rounded-lg text-cream-muted hover:text-cream hover:bg-surface-3 text-sm transition-colors">Explore Art</Link>
-              <Link to="/cultural-map" onClick={() => setMenu(false)} className="px-3 py-2.5 rounded-lg text-cream-muted hover:text-cream hover:bg-surface-3 text-sm transition-colors">Cultural Map</Link>
-              {user?.role === "artist" && <Link to="/artist/dashboard" onClick={() => setMenu(false)} className="px-3 py-2.5 rounded-lg text-cream-muted hover:text-cream hover:bg-surface-3 text-sm transition-colors">My Dashboard</Link>}
-              {user?.role === "artist" && <Link to="/artist/upload" onClick={() => setMenu(false)} className="px-3 py-2.5 rounded-lg text-cream-muted hover:text-cream hover:bg-surface-3 text-sm transition-colors">Upload Art</Link>}
+              <div className="px-2 pt-1 pb-2">
+                <LanguageSwitcher />
+              </div>
+              <Link to="/explore" onClick={() => setMenu(false)} className="px-3 py-2.5 rounded-lg text-cream-muted hover:text-cream hover:bg-surface-3 text-sm transition-colors">{t("nav.explore")}</Link>
+              <Link to="/cultural-map" onClick={() => setMenu(false)} className="px-3 py-2.5 rounded-lg text-cream-muted hover:text-cream hover:bg-surface-3 text-sm transition-colors">{t("nav.culturalMap")}</Link>
+              {user?.role === "artist" && <Link to="/artist/dashboard" onClick={() => setMenu(false)} className="px-3 py-2.5 rounded-lg text-cream-muted hover:text-cream hover:bg-surface-3 text-sm transition-colors">{t("nav.myDashboard")}</Link>}
+              {user?.role === "artist" && <Link to="/artist/upload" onClick={() => setMenu(false)} className="px-3 py-2.5 rounded-lg text-cream-muted hover:text-cream hover:bg-surface-3 text-sm transition-colors">{t("nav.uploadArt")}</Link>}
               {user ? (
-                <button onClick={() => { handleLogout(); setMenu(false); }} className="mt-2 px-3 py-2.5 rounded-lg text-crimson text-sm text-left">Sign Out</button>
+                <button onClick={() => { handleLogout(); setMenu(false); }} className="mt-2 px-3 py-2.5 rounded-lg text-crimson text-sm text-left">{t("nav.signOut")}</button>
               ) : (
                 <div className="flex gap-2 mt-2 px-1">
-                  <Link to="/login"    onClick={() => setMenu(false)} className="btn-outline text-sm py-2 px-4 flex-1 text-center">Sign In</Link>
-                  <Link to="/register" onClick={() => setMenu(false)} className="btn-saffron text-sm py-2 px-4 flex-1 text-center">Join Free</Link>
+                  <Link to="/login"    onClick={() => setMenu(false)} className="btn-outline text-sm py-2 px-4 flex-1 text-center">{t("nav.signIn")}</Link>
+                  <Link to="/register" onClick={() => setMenu(false)} className="btn-saffron text-sm py-2 px-4 flex-1 text-center">{t("nav.joinFree")}</Link>
                 </div>
               )}
             </div>

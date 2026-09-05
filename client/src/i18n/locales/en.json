@@ -1,0 +1,40 @@
+{
+  "nav": {
+    "explore": "Explore Art",
+    "culturalMap": "Cultural Map",
+    "myDashboard": "My Dashboard",
+    "sellArt": "Sell Art",
+    "myOrders": "My Orders",
+    "dashboard": "Dashboard",
+    "uploadArt": "Upload Art",
+    "signOut": "Sign Out",
+    "signIn": "Sign In",
+    "joinFree": "Join Free"
+  },
+  "home": {
+    "heroTitle": "India's First Direct Art Marketplace",
+    "heroSubtitle": "Buy directly from local Indian artists. No middlemen. Fair prices.",
+    "exploreBtn": "Explore Art",
+    "sellBtn": "Sell Your Art"
+  },
+  "product": {
+    "addToCart": "Add to Cart",
+    "buyNow": "Buy Now",
+    "price": "Price",
+    "artist": "Artist",
+    "story": "Artist's Story",
+    "outOfStock": "Out of Stock"
+  },
+  "checkout": {
+    "orderSummary": "Order Summary",
+    "shippingAddress": "Shipping Address",
+    "payNow": "Pay Now",
+    "totalAmount": "Total Amount"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "search": "Search artwork...",
+    "language": "Language"
+  }
+}
