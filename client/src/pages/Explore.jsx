@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ArtCard from "../components/ArtCard";
@@ -8,6 +9,7 @@ import api from "../services/api";
 const CATEGORIES = ["All","Madhubani","Warli","Kalamkari","Pottery","Pattachitra","Weaving","Sculpture","Folk Art","Photography","Other"];
 
 export default function Explore() {
+  const { t } = useTranslation();
   const [params] = useSearchParams();
   const [artworks, setArtworks] = useState([]);
   const [total, setTotal]       = useState(0);
@@ -57,14 +59,14 @@ export default function Explore() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-20">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="font-display text-4xl text-cream font-bold">Explore Indian Art</h1>
-          <p className="text-cream-muted text-sm mt-1">{total} authentic artworks from verified artists across India</p>
+          <h1 className="font-display text-4xl text-cream font-bold">{t("explore.title")}</h1>
+          <p className="text-cream-muted text-sm mt-1">{t("explore.subtitleCount", { count: total })}</p>
         </div>
 
         {/* Active state filter, from the Cultural Map */}
         {state && (
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-cream-muted text-xs">Filtering by:</span>
+            <span className="text-cream-muted text-xs">{t("explore.filteringBy")}</span>
             <button
               onClick={() => setState("")}
               className="inline-flex items-center gap-1.5 bg-saffron/15 border border-saffron/40 text-saffron text-xs font-medium px-3 py-1.5 rounded-full hover:bg-saffron/25 transition-colors"
@@ -78,13 +80,13 @@ export default function Explore() {
         {/* Search + Sort bar */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}}
-                 placeholder="Search art, artist, style…"
+                 placeholder={t("explore.searchPlaceholder")}
                  className="input-dark flex-1" />
           <select value={sort} onChange={e=>setSort(e.target.value)} className="input-dark w-full sm:w-48">
-            <option value="-createdAt">Newest First</option>
-            <option value="price">Price: Low → High</option>
-            <option value="-price">Price: High → Low</option>
-            <option value="-views">Most Viewed</option>
+            <option value="-createdAt">{t("explore.sortNewest")}</option>
+            <option value="price">{t("explore.sortPriceLow")}</option>
+            <option value="-price">{t("explore.sortPriceHigh")}</option>
+            <option value="-views">{t("explore.sortMostViewed")}</option>
           </select>
         </div>
 
@@ -108,8 +110,8 @@ export default function Explore() {
         ) : artworks.length === 0 ? (
           <div className="text-center py-20">
             <div className="text-5xl mb-4">🎨</div>
-            <p className="text-cream text-lg">No artworks found</p>
-            <p className="text-cream-muted text-sm mt-2">Try a different filter or search term</p>
+            <p className="text-cream text-lg">{t("explore.noResults")}</p>
+            <p className="text-cream-muted text-sm mt-2">{t("explore.noResultsHint")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

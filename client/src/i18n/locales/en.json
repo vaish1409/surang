@@ -12,10 +12,50 @@
     "joinFree": "Join Free"
   },
   "home": {
+    "kicker": "India's Direct Art Marketplace",
     "heroTitle": "India's First Direct Art Marketplace",
     "heroSubtitle": "Buy directly from local Indian artists. No middlemen. Fair prices.",
+    "heroDesc": "Buy authentic Indian art directly from local artists. Madhubani, Warli, Kalamkari, Pottery and more — no middlemen, full artist credit.",
     "exploreBtn": "Explore Art",
-    "sellBtn": "Sell Your Art"
+    "sellBtn": "Sell Your Art",
+    "scrollLabel": "Scroll",
+    "categoriesEyebrow": "28 states, one platform",
+    "categoriesTitle": "Discover India's Art Forms",
+    "categoriesSubtitle": "From the terracotta of Bengal to the lacquerware of Rajasthan — every art form finds its home on SURANG.",
+    "howEyebrow": "Like Swiggy — but for art",
+    "howTitle": "Direct. Authentic. Fair.",
+    "statsTitle": "Giving Credit Where It Belongs",
+    "statsSubtitle": "Every rupee goes directly to the artist. Every artwork carries the creator's name, story and state.",
+    "ctaEyebrow": "For every local artist",
+    "ctaTitle1": "Your art deserves",
+    "ctaTitle2": "to be seen & sold.",
+    "ctaSubtitle": "Whether you're in a city studio or a remote village — SURANG puts your artwork in front of buyers across India. You set your price. You ship directly. Zero commission from us.",
+    "ctaStartSelling": "Start Selling Today",
+    "ctaBrowseBuyer": "Browse as Buyer",
+    "categories": {
+      "madhubani": "Ancient folk paintings of love & mythology",
+      "warli": "Tribal geometric art in earthy whites",
+      "kalamkari": "Hand-drawn narratives on cloth and paper",
+      "pottery": "Earth shaped by patient, skilled hands",
+      "pattachitra": "Vivid cloth-based scroll paintings of Jagannath",
+      "weaving": "Heritage in every handloom thread",
+      "sculpture": "Stories carved in stone & wood across centuries",
+      "folkArt": "Vibrant colours from every region of Bharat"
+    },
+    "steps": {
+      "step1Title": "Artist Uploads",
+      "step1Desc": "Local artists upload their work directly with price, description and cultural story — no gallery, no agent.",
+      "step2Title": "You Discover",
+      "step2Desc": "Browse thousands of authentic artworks from verified artists across 28 Indian states, all in one place.",
+      "step3Title": "Buy Direct",
+      "step3Desc": "Purchase with UPI or cards via Razorpay. The artist ships directly to you. Full credit stays with the creator."
+    },
+    "stats": {
+      "artists": "Artists",
+      "artworks": "Artworks",
+      "states": "States",
+      "delivered": "Delivered"
+    }
   },
   "product": {
     "addToCart": "Add to Cart",
@@ -23,7 +63,32 @@
     "price": "Price",
     "artist": "Artist",
     "story": "Artist's Story",
-    "outOfStock": "Out of Stock"
+    "outOfStock": "Out of Stock",
+    "notFound": "Artwork not found",
+    "breadcrumbHome": "Home",
+    "style": "Style",
+    "sold": "Sold",
+    "verified": "Verified",
+    "aboutArtwork": "About this artwork",
+    "dimensions": "Dimensions",
+    "medium": "Medium",
+    "shipsFrom": "Ships From",
+    "views": "Views",
+    "inCart": "In Cart",
+    "addedToCart": "Added to cart!",
+    "contactWhatsapp": "Contact artist on WhatsApp"
+  },
+  "explore": {
+    "title": "Explore Indian Art",
+    "subtitleCount": "{{count}} authentic artworks from verified artists across India",
+    "filteringBy": "Filtering by:",
+    "searchPlaceholder": "Search art, artist, style…",
+    "sortNewest": "Newest First",
+    "sortPriceLow": "Price: Low → High",
+    "sortPriceHigh": "Price: High → Low",
+    "sortMostViewed": "Most Viewed",
+    "noResults": "No artworks found",
+    "noResultsHint": "Try a different filter or search term"
   },
   "checkout": {
     "orderSummary": "Order Summary",
