@@ -25,4 +25,11 @@ i18n
     },
   });
 
+// Keep <html lang="..."> in sync so CSS can target the right font per
+// language (e.g. Kannada needs its own font — see index.css).
+document.documentElement.lang = i18n.language;
+i18n.on("languageChanged", (lng) => {
+  document.documentElement.lang = lng;
+});
+
 export default i18n;

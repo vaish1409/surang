@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import InstallPrompt from "./components/InstallPrompt";
 
 import Landing        from "./pages/Landing";
 import Explore        from "./pages/Explore";
@@ -31,6 +32,7 @@ export default function App() {
               error:   { iconTheme: { primary: "#C1272D", secondary: "#1C1535" } },
             }}
           />
+          <InstallPrompt />
           <Routes>
             <Route path="/"         element={<Landing />} />
             <Route path="/explore"  element={<Explore />} />
