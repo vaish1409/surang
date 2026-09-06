@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 const LANGUAGES = [
   { code: "en", label: "EN" },
+  { code: "hi", label: "हिं" },
   { code: "kn", label: "ಕನ್ನಡ" },
 ];
 

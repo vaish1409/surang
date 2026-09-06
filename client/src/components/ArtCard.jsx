@@ -1,9 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useCart } from "../context/CartContext";
 import toast from "react-hot-toast";
 
 export default function ArtCard({ artwork }) {
+  const { t } = useTranslation();
   const { addToCart, isInCart } = useCart();
   const inCart = isInCart(artwork._id);
 
@@ -11,7 +13,7 @@ export default function ArtCard({ artwork }) {
     e.preventDefault();
     if (inCart) return;
     addToCart(artwork);
-    toast.success(`${artwork.title} added to cart!`);
+    toast.success(`${artwork.title} ${t("product.addedToCart")}`);
   };
 
   return (
@@ -36,7 +38,7 @@ export default function ArtCard({ artwork }) {
             inCart ? "bg-teal text-deep" : "bg-saffron text-deep hover:bg-saffron-dark"
           }`}
         >
-          {inCart ? "✓ In Cart" : "Add to Cart"}
+          {inCart ? `✓ ${t("product.inCart")}` : t("product.addToCart")}
         </button>
         {/* Category badge */}
         <span className="absolute top-3 left-3 bg-deep/70 backdrop-blur text-cream text-[11px] px-2.5 py-1 rounded-full">

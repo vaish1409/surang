@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Navbar from "../../components/Navbar";
 import api from "../../services/api";
 import toast from "react-hot-toast";
@@ -21,6 +22,7 @@ const VOICE_LANGUAGES = [
 ];
 
 export default function UploadArt() {
+  const { t }     = useTranslation();
   const navigate  = useNavigate();
   const fileRef   = useRef();
   const [loading, setLoading] = useState(false);
@@ -56,7 +58,7 @@ export default function UploadArt() {
 
   const handleAutoCatalog = async () => {
     if (files.length === 0) {
-      toast.error("Add a photo first, then let AI suggest the details");
+      toast.error(t("uploadArt.aiNoPhotoToast"));
       return;
     }
     setAiLoading(true);
@@ -77,9 +79,9 @@ export default function UploadArt() {
       }));
       setAiMeta({ confidence: data.confidence, artisanPrompt: data.artisanPrompt });
       setDetectedContext({ category: data.category, artStyle: data.artStyle, medium: data.medium });
-      toast.success("AI drafted your listing — please review before publishing ✨");
+      toast.success(t("uploadArt.aiSuccessToast"));
     } catch (err) {
-      toast.error(err.response?.data?.message || "AI suggestion failed. You can fill this in manually.");
+      toast.error(err.response?.data?.message || t("uploadArt.aiFailToast"));
     } finally {
       setAiLoading(false);
     }
@@ -89,7 +91,7 @@ export default function UploadArt() {
   const startRecording = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      toast.error("Voice input isn't supported in this browser yet. Try Chrome or Edge.");
+      toast.error(t("uploadArt.voiceNotSupported"));
       return;
     }
 
@@ -111,7 +113,7 @@ export default function UploadArt() {
     };
 
     recognition.onerror = () => {
-      toast.error("Voice recognition hit an error — please try again.");
+      toast.error(t("uploadArt.voiceRecognitionError"));
       setIsRecording(false);
     };
 
@@ -129,7 +131,7 @@ export default function UploadArt() {
 
     const transcript = liveTranscript.trim();
     if (!transcript) {
-      toast.error("Didn't catch anything — try again, a little closer to the mic.");
+      toast.error(t("uploadArt.voiceNothingCaught"));
       return;
     }
 
@@ -137,11 +139,11 @@ export default function UploadArt() {
     try {
       const { data } = await api.post("/ai/polish-description", { transcript, detectedContext });
       setForm((p) => ({ ...p, description: data.description || transcript }));
-      toast.success("Your spoken description is drafted below — please review it ✨");
+      toast.success(t("uploadArt.voiceSuccessToast"));
     } catch (err) {
       // Never block the artisan — fall back to their raw words if polishing fails
       setForm((p) => ({ ...p, description: transcript }));
-      toast.error(err.response?.data?.message || "Couldn't polish the wording, so your own words are filled in as-is.");
+      toast.error(err.response?.data?.message || t("uploadArt.voiceFailToast"));
     } finally {
       setVoiceLoading(false);
     }
@@ -149,17 +151,17 @@ export default function UploadArt() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (files.length === 0) { toast.error("Please upload at least one image"); return; }
+    if (files.length === 0) { toast.error(t("uploadArt.needOneImageToast")); return; }
     setLoading(true);
     try {
       const fd = new FormData();
       Object.entries(form).forEach(([k,v]) => fd.append(k,v));
       files.forEach(f => fd.append("images", f));
       await api.post("/artworks", fd, { headers:{ "Content-Type":"multipart/form-data" } });
-      toast.success("Artwork uploaded! 🎨");
+      toast.success(t("uploadArt.uploadSuccessToast"));
       navigate("/artist/dashboard");
     } catch(err) {
-      toast.error(err.response?.data?.message || "Upload failed. Try again.");
+      toast.error(err.response?.data?.message || t("uploadArt.uploadFailToast"));
     } finally { setLoading(false); }
   };
 
@@ -168,14 +170,14 @@ export default function UploadArt() {
       <Navbar/>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-24 pb-20">
         <div className="mb-8">
-          <h1 className="font-display text-4xl text-cream font-bold">Upload Your Artwork</h1>
-          <p className="text-cream-muted text-sm mt-1">Share your art with buyers across India. Your credit, your price, your story.</p>
+          <h1 className="font-display text-4xl text-cream font-bold">{t("uploadArt.title")}</h1>
+          <p className="text-cream-muted text-sm mt-1">{t("uploadArt.subtitle")}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Image upload */}
           <div>
-            <label className="text-cream font-medium mb-3 block">Artwork Photos (1-5) *</label>
+            <label className="text-cream font-medium mb-3 block">{t("uploadArt.photosLabel")}</label>
             <div onClick={()=>fileRef.current.click()}
                  className="border-2 border-dashed border-surface-3 rounded-2xl p-8 text-center cursor-pointer hover:border-saffron/50 transition-colors">
               {previews.length > 0 ? (
@@ -183,13 +185,13 @@ export default function UploadArt() {
                   {previews.map((src,i)=>(
                     <img key={i} src={src} alt="" className="w-24 h-24 object-cover rounded-xl border border-surface-3"/>
                   ))}
-                  <div className="w-24 h-24 rounded-xl border border-dashed border-surface-3 flex items-center justify-center text-cream-muted text-xs">+ More</div>
+                  <div className="w-24 h-24 rounded-xl border border-dashed border-surface-3 flex items-center justify-center text-cream-muted text-xs">{t("uploadArt.moreLabel")}</div>
                 </div>
               ) : (
                 <div>
                   <div className="text-4xl mb-2 text-cream-muted/40">📷</div>
-                  <p className="text-cream text-sm font-medium">Click to upload photos</p>
-                  <p className="text-cream-muted text-xs mt-1">JPG, PNG or WebP · Max 10MB each · Up to 5 photos</p>
+                  <p className="text-cream text-sm font-medium">{t("uploadArt.clickToUpload")}</p>
+                  <p className="text-cream-muted text-xs mt-1">{t("uploadArt.fileHint")}</p>
                 </div>
               )}
             </div>
@@ -204,15 +206,15 @@ export default function UploadArt() {
               disabled={aiLoading}
               className={`btn-outline w-full py-3 rounded-xl font-medium ${aiLoading ? "opacity-60 cursor-wait" : ""}`}
             >
-              {aiLoading ? "✨ AI is looking at your photo…" : "✨ Auto-fill details with AI"}
+              {aiLoading ? t("uploadArt.aiButtonLoading") : t("uploadArt.aiButtonIdle")}
             </button>
           )}
 
           {aiMeta && (
             <div className="bg-surface-2 border border-saffron/30 rounded-2xl p-4 text-sm">
               <p className="text-cream">
-                ✨ AI drafted the fields below (confidence: <span className="font-semibold">{aiMeta.confidence}</span>).
-                Please read them over — this is a starting point, not the final word on your own work.
+                {t("uploadArt.aiBannerLine1", { confidence: aiMeta.confidence })}{" "}
+                {t("uploadArt.aiBannerLine2")}
               </p>
               {aiMeta.artisanPrompt && (
                 <p className="text-cream-muted mt-2">💬 {aiMeta.artisanPrompt}</p>
@@ -223,7 +225,7 @@ export default function UploadArt() {
           {/* Voice-based description — speak in your own language instead of typing */}
           <div className="bg-surface-2 border border-surface-3 rounded-2xl p-4 space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <p className="text-cream text-sm font-medium">🎙️ Prefer to speak your description?</p>
+              <p className="text-cream text-sm font-medium">{t("uploadArt.voicePrompt")}</p>
               <select
                 value={voiceLang}
                 onChange={(e) => setVoiceLang(e.target.value)}
@@ -244,72 +246,72 @@ export default function UploadArt() {
                 ${isRecording ? "border-red-400 text-red-300" : ""}
                 ${voiceLoading ? "opacity-60 cursor-wait" : ""}`}
             >
-              {voiceLoading ? "✨ Polishing your words…" : isRecording ? "⏹ Stop and use this" : "🎙️ Start speaking"}
+              {voiceLoading ? t("uploadArt.voicePolishing") : isRecording ? t("uploadArt.voiceStop") : t("uploadArt.voiceStart")}
             </button>
 
             {isRecording && (
               <p className="text-cream-muted text-xs italic min-h-[1.25rem]">
-                {liveTranscript || "Listening… speak naturally about your craft."}
+                {liveTranscript || t("uploadArt.voiceListening")}
               </p>
             )}
           </div>
 
           <div className="bg-surface-2 border border-surface-3 rounded-2xl p-6 space-y-5">
-            <h3 className="text-cream font-semibold">Artwork Details</h3>
+            <h3 className="text-cream font-semibold">{t("uploadArt.detailsHeading")}</h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <label className="text-cream-muted text-xs mb-1.5 block">Artwork Title *</label>
-                <input value={form.title} onChange={f("title")} placeholder="e.g. Dancing Peacock in Madhubani" className="input-dark" required/>
+                <label className="text-cream-muted text-xs mb-1.5 block">{t("uploadArt.titleLabel")}</label>
+                <input value={form.title} onChange={f("title")} placeholder={t("uploadArt.titlePlaceholder")} className="input-dark" required/>
               </div>
               <div>
-                <label className="text-cream-muted text-xs mb-1.5 block">Category *</label>
+                <label className="text-cream-muted text-xs mb-1.5 block">{t("uploadArt.categoryLabel")}</label>
                 <select value={form.category} onChange={f("category")} className="input-dark" required>
                   {CATEGORIES.map(c=><option key={c}>{c}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-cream-muted text-xs mb-1.5 block">Price (₹) *</label>
-                <input type="number" value={form.price} onChange={f("price")} placeholder="e.g. 1500" className="input-dark" required min="1"/>
+                <label className="text-cream-muted text-xs mb-1.5 block">{t("uploadArt.priceLabel")}</label>
+                <input type="number" value={form.price} onChange={f("price")} placeholder={t("uploadArt.pricePlaceholder")} className="input-dark" required min="1"/>
               </div>
               <div className="sm:col-span-2">
-                <label className="text-cream-muted text-xs mb-1.5 block">Description & Cultural Story *</label>
+                <label className="text-cream-muted text-xs mb-1.5 block">{t("uploadArt.descriptionLabel")}</label>
                 <textarea value={form.description} onChange={f("description")}
-                          placeholder="Describe your artwork — what it means, the tradition behind it, technique used, materials, how long it took. This helps buyers appreciate the real value."
+                          placeholder={t("uploadArt.descriptionPlaceholder")}
                           className="input-dark h-32 resize-none" required rows={4}/>
               </div>
               <div>
-                <label className="text-cream-muted text-xs mb-1.5 block">Art Style / Sub-style</label>
-                <input value={form.artStyle} onChange={f("artStyle")} placeholder="e.g. Mithila, Gond" className="input-dark"/>
+                <label className="text-cream-muted text-xs mb-1.5 block">{t("uploadArt.artStyleLabel")}</label>
+                <input value={form.artStyle} onChange={f("artStyle")} placeholder={t("uploadArt.artStylePlaceholder")} className="input-dark"/>
               </div>
               <div>
-                <label className="text-cream-muted text-xs mb-1.5 block">Medium</label>
-                <input value={form.medium} onChange={f("medium")} placeholder="e.g. Acrylic on handmade paper" className="input-dark"/>
+                <label className="text-cream-muted text-xs mb-1.5 block">{t("uploadArt.mediumLabel")}</label>
+                <input value={form.medium} onChange={f("medium")} placeholder={t("uploadArt.mediumPlaceholder")} className="input-dark"/>
               </div>
               <div>
-                <label className="text-cream-muted text-xs mb-1.5 block">Dimensions</label>
-                <input value={form.dimensions} onChange={f("dimensions")} placeholder="e.g. 24 × 18 inches" className="input-dark"/>
+                <label className="text-cream-muted text-xs mb-1.5 block">{t("uploadArt.dimensionsLabel")}</label>
+                <input value={form.dimensions} onChange={f("dimensions")} placeholder={t("uploadArt.dimensionsPlaceholder")} className="input-dark"/>
               </div>
               <div>
-                <label className="text-cream-muted text-xs mb-1.5 block">Tags (comma separated)</label>
-                <input value={form.tags} onChange={f("tags")} placeholder="peacock, nature, Bihar folk art" className="input-dark"/>
+                <label className="text-cream-muted text-xs mb-1.5 block">{t("uploadArt.tagsLabel")}</label>
+                <input value={form.tags} onChange={f("tags")} placeholder={t("uploadArt.tagsPlaceholder")} className="input-dark"/>
               </div>
             </div>
           </div>
 
           <div className="bg-surface-2 border border-surface-3 rounded-2xl p-6 space-y-4">
-            <h3 className="text-cream font-semibold">Shipping Origin</h3>
+            <h3 className="text-cream font-semibold">{t("uploadArt.shippingHeading")}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-cream-muted text-xs mb-1.5 block">State</label>
+                <label className="text-cream-muted text-xs mb-1.5 block">{t("uploadArt.stateLabel")}</label>
                 <select value={form.state} onChange={f("state")} className="input-dark">
-                  <option value="">Select state</option>
+                  <option value="">{t("uploadArt.selectState")}</option>
                   {STATES.map(s=><option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-cream-muted text-xs mb-1.5 block">City</label>
-                <input value={form.city} onChange={f("city")} placeholder="Your city" className="input-dark"/>
+                <label className="text-cream-muted text-xs mb-1.5 block">{t("uploadArt.cityLabel")}</label>
+                <input value={form.city} onChange={f("city")} placeholder={t("uploadArt.cityPlaceholder")} className="input-dark"/>
               </div>
             </div>
           </div>
@@ -317,9 +319,9 @@ export default function UploadArt() {
           <div className="flex gap-3">
             <button type="submit" disabled={loading}
                     className={`btn-saffron px-8 py-3 font-semibold rounded-xl flex-1 text-center ${loading?"opacity-60 cursor-wait":""}`}>
-              {loading ? "Uploading… please wait" : "Publish Artwork →"}
+              {loading ? t("uploadArt.publishing") : t("uploadArt.publishButton")}
             </button>
-            <button type="button" onClick={()=>navigate("/artist/dashboard")} className="btn-outline px-6 py-3 rounded-xl">Cancel</button>
+            <button type="button" onClick={()=>navigate("/artist/dashboard")} className="btn-outline px-6 py-3 rounded-xl">{t("uploadArt.cancelButton")}</button>
           </div>
         </form>
       </div>

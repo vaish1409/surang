@@ -4,6 +4,7 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
 import en from "./locales/en.json";
+import hi from "./hi.json";
 import kn from "./kn.json";
 
 i18n
@@ -12,6 +13,7 @@ i18n
   .init({
     resources: {
       en: { translation: en },
+      hi: { translation: hi },
       kn: { translation: kn },
     },
     fallbackLng: "en",
