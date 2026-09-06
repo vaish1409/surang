@@ -225,7 +225,10 @@ export default function UploadArt() {
           {/* Voice-based description — speak in your own language instead of typing */}
           <div className="bg-surface-2 border border-surface-3 rounded-2xl p-4 space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
-              <p className="text-cream text-sm font-medium">{t("uploadArt.voicePrompt")}</p>
+              <div>
+                <p className="text-cream text-sm font-medium">{t("uploadArt.voicePrompt")}</p>
+                <p className="text-cream-muted text-xs mt-0.5">{t("uploadArt.voiceAccessibilityNote")}</p>
+              </div>
               <select
                 value={voiceLang}
                 onChange={(e) => setVoiceLang(e.target.value)}

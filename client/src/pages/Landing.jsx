@@ -152,6 +152,9 @@ export default function Landing() {
           <p className="text-cream-muted text-base md:text-lg max-w-xl mx-auto mb-8 leading-relaxed animate-fade-up" style={{animationDelay:"0.3s"}}>
             {t("home.heroDesc")}
           </p>
+          <p className="text-saffron/80 text-sm max-w-xl mx-auto mb-6 leading-relaxed animate-fade-up" style={{animationDelay:"0.35s"}}>
+            {t("home.inclusionLine")}
+          </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center animate-fade-up" style={{animationDelay:"0.4s"}}>
             <Link to="/explore" className="btn-saffron text-base px-8 py-3">

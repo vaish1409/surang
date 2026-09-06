@@ -16,6 +16,7 @@
     "heroTitle": "India's First Direct Art Marketplace",
     "heroSubtitle": "Buy directly from local Indian artists. No middlemen. Fair prices.",
     "heroDesc": "Buy authentic Indian art directly from local artists. Madhubani, Warli, Kalamkari, Pottery and more — no middlemen, full artist credit.",
+    "inclusionLine": "Built for every Indian artisan — including those from underserved and marginalized communities who've long been shut out of digital markets.",
     "exploreBtn": "Explore Art",
     "sellBtn": "Sell Your Art",
     "scrollLabel": "Scroll",
@@ -103,7 +104,7 @@
     "language": "Language"
   },
   "footer": {
-    "tagline": "India's first direct art marketplace. Connecting local artists from every corner of India directly with buyers — no middlemen, full credit, fair prices.",
+    "tagline": "India's first direct art marketplace — built to include artisans from every background, including underserved and marginalized communities. No middlemen, full credit, fair prices, always the artisan's own price.",
     "exploreHeading": "Explore",
     "allArtworks": "All Artworks",
     "artistsHeading": "Artists",
@@ -177,6 +178,7 @@
     "cancelButton": "Cancel",
     "needOneImageToast": "Please upload at least one image",
     "uploadSuccessToast": "Artwork uploaded! 🎨",
-    "uploadFailToast": "Upload failed. Try again."
+    "uploadFailToast": "Upload failed. Try again.",
+    "voiceAccessibilityNote": "Made for artisans who find typing difficult — because of language, literacy, or visual accessibility needs."
   }
 }
