@@ -15,6 +15,7 @@ const artworkSchema = new mongoose.Schema({
   dimensions:  { type: String },
   medium:      { type: String },
   isAvailable: { type: Boolean, default: true },
+  isFeatured:  { type: Boolean, default: false },
   artist:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   location:    { state: String, city: String },
   soldCount:   { type: Number, default: 0 },

@@ -12,7 +12,18 @@ const userSchema = new mongoose.Schema({
   state:         { type: String },
   city:          { type: String },
   artSpecialties:{ type: [String], default: [] },
+
   isVerified:    { type: Boolean, default: false },
+  isBlocked:     { type: Boolean, default: false },
+
+  // Verification evidence — works for either role: a Pehchan Artisan ID for
+  // sellers, or any government ID reference a buyer chooses to provide.
+  // Always optional and self-disclosed, never required to use the platform.
+  verificationDocId: { type: String, trim: true, default: '' },
+  verificationNotes: { type: String, trim: true, default: '' },
+  verifiedAt:         { type: Date },
+  verifiedBy:          { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+
   totalSales:    { type: Number,  default: 0 },
   totalEarnings: { type: Number,  default: 0 },
 }, { timestamps: true });
