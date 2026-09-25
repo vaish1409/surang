@@ -13,8 +13,11 @@
 // to create the real admin account judges/you will actually use.
 
 require('dotenv').config();
+const dns = require('dns');
 const mongoose = require('mongoose');
 const User = require('../models/User');
+
+dns.setServers(['1.1.1.1', '8.8.8.8']);
 
 async function main() {
   const [, , email, password] = process.argv;
